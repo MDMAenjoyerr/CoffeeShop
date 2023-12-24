@@ -13,47 +13,44 @@ dp = Dispatcher(bot)
 
 # Клавиатура
 menu = ReplyKeyboardMarkup(resize_keyboard=True)
-menu.add(KeyboardButton("Список команд"))
-menu.add(KeyboardButton("Меню"))
+menu.add(KeyboardButton("💬Список команд💬"))
+menu.add(KeyboardButton("📖Меню📖"))
 menu.add(KeyboardButton("🌍Где нас найти?🌍"))
 
 
 # Список геолокаций кофеен
 locations = [
-    {"title": "Кофейня 1", "latitude": 55.7558, "longitude": 37.6176},
-    {"title": "Кофейня 2", "latitude": 55.7505, "longitude": 37.6055},
-    # Добавьте дополнительные кофейни, если необходимо
+    {"title": "Кофейня 1", "address": "Цветной бульвар", "apartment": "21"},
+    {"title": "Кофейня 2", "address": "Улица Маллая бронная", "apartment": "21"},
 ]
 
 # Генерация клавиатуры с инлайн-кнопками для геолокаций
 locations_keyboard = InlineKeyboardMarkup()
 for location in locations:
     locations_keyboard.add(
-        InlineKeyboardButton(text=f"{location['title']} 📍", callback_data=f"location:{location['latitude']}:{location['longitude']}")
-    )
+        InlineKeyboardButton(text=location["title"], callback_data=f"location:{location['address']}:{location['apartment']}"))
 
 
 # Обработка команды /start
 @dp.message_handler(commands=['start'])
 async def process_start_command(message: types.Message):
-    await message.answer("Привет! Я бот кофейни. Напиши /menu чтобы увидеть меню.", reply_markup=menu)
+    await message.answer("Привет! Я бот кофейни: CoffeeShop, чтоюбы воспользоваться мной, выбери команды снизу⬇️.", reply_markup=menu)
 
 
 # Обработка команды /help
-@dp.message_handler(commands=['help'])
+@dp.message_handler(lambda message: message.text == "💬Список команд💬", content_types=types.ContentTypes.TEXT)
 async def process_help_command(message: types.Message):
-    await message.answer("Список команд:\n/start - начать работу с ботом\n/help - список команд\n/menu - посмотреть меню",
-                         reply_markup=menu)
+    await message.answer("Список команд:\n/start - начать работу с ботом\n/help - список команд\n/menu - посмотреть меню", reply_markup=menu)
 
 
 # Обработка команды /menu
-@dp.message_handler(commands=['Меню'])
+@dp.message_handler(lambda message: message.text == "📖Меню📖", content_types=types.ContentTypes.TEXT)
 async def process_menu_command(message: types.Message):
-    await message.answer("Меню с ценами на кофе:\n1. Эспрессо - $2\n2. Латте - $3\n3. Капучино - $4", reply_markup=menu)
+    await message.answer("Меню с ценами:\n1. Эспрессо - €2\n2. Латте - €2.5\n3. Капучино - €2\n4. РАФ Карамельный - €4.5\n5. Круасан - €1.25\n6. Донат в ассортименте - €1.5pcs", reply_markup=menu)
 
 
 # Обработка кнопки "Где нас найти?"
-@dp.message_handler(lambda message: message.text == "Где нас найти?", content_types=types.ContentTypes.TEXT)
+@dp.message_handler(lambda message: message.text == "🌍Где нас найти?🌍", content_types=types.ContentTypes.TEXT)
 async def process_location_button(message: types.Message):
     await message.answer("Выбери кофейню, чтобы увидеть её местоположение:", reply_markup=locations_keyboard)
 
@@ -61,8 +58,8 @@ async def process_location_button(message: types.Message):
 # Обработка инлайн-кнопок с геолокациями
 @dp.callback_query_handler(lambda c: c.data.startswith('location'))
 async def process_location_button(callback_query: types.CallbackQuery):
-    _, latitude, longitude = callback_query.data.split(":")
-    location_text = f"Вы выбрали кофейню по координатам:\nШирота: {latitude}\nДолгота: {longitude}"
+    _, address, apartment = callback_query.data.split(":")
+    location_text = f"Вы выбрали кофейню :\n{address} {apartment}"
     await bot.send_message(callback_query.from_user.id, location_text)
 
 
